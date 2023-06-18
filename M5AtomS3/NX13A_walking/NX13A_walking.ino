@@ -123,49 +123,52 @@ void Initial_Value(){  //initial servo angle
 }
 
 void face_clear(){
-  M5.Lcd.fillScreen(M5.Lcd.color565(0, 150, 255)); //b, g, r   Yellow
+  M5.Lcd.fillScreen(M5.Lcd.color565(255, 150, 0)); //r, g, b   Yellow
   
 }
 
-void face_center_eye(){
-  face_clear();
-  M5.Lcd.fillCircle(39,49,10,0x7800); //Blue
-  M5.Lcd.fillCircle(89,49,10,0x7800); //Blue
-  M5.Lcd.fillRect(39,83,50,10,0x001F); //Red
-  delay(1500);
-  face_clear();
-  M5.Lcd.fillRect(34,44,10,7,0x7800); //Blue
-  M5.Lcd.fillRect(84,44,10,7,0x7800); //Blue
-  M5.Lcd.fillRect(39,83,50,10,0x001F); //Red
-  delay(100);
+void face_center_eye(void *pvParameters){
+  while(1)
+  {
+    face_clear();
+    M5.Lcd.fillCircle(39,49,10,0x001F); //Blue
+    M5.Lcd.fillCircle(89,49,10,0x001F); //Blue
+    M5.Lcd.fillRect(39,83,50,10,0x7800); //Red
+    delay(1500);
+    face_clear();
+    M5.Lcd.fillRect(34,44,10,7,0x001F); //Blue
+    M5.Lcd.fillRect(84,44,10,7,0x001F); //Blue
+    M5.Lcd.fillRect(39,83,50,10,0x7800); //Red
+    delay(100);
+  }
 }
 
 void face_center(){
   face_clear();
-  M5.Lcd.fillCircle(39,49,10,0x7800); //Blue
-  M5.Lcd.fillCircle(89,49,10,0x7800); //Blue
-  M5.Lcd.fillRect(39,83,50,10,0x001F); //Red
+  M5.Lcd.fillCircle(39,49,10,0x001F); //Blue
+  M5.Lcd.fillCircle(89,49,10,0x001F); //Blue
+  M5.Lcd.fillRect(39,83,50,10,0x7800); //Red
 }
 
 void face_angry(){
-  M5.Lcd.fillScreen(M5.Lcd.color565(0, 0, 255)); //b, g, r
-  M5.Lcd.fillTriangle(14,24,54,54,14,44,0x7800); //Blue
-  M5.Lcd.fillTriangle(74,54,114,24,114,44,0x7800); //Blue
+  M5.Lcd.fillScreen(M5.Lcd.color565(255, 0, 0)); //r, g, b
+  M5.Lcd.fillTriangle(14,24,54,54,14,44,0x001F); //Blue
+  M5.Lcd.fillTriangle(74,54,114,24,114,44,0x001F); //Blue
   M5.Lcd.fillRect(39,73,50,40,0x0000); //Black
 }
 
 void face_right(){
   face_clear();
-  M5.Lcd.fillCircle(19,49,10,0x7800); //Blue
-  M5.Lcd.fillCircle(69,49,10,0x7800); //Blue
-  M5.Lcd.fillRect(19,78,50,20,0x001F); //Red
+  M5.Lcd.fillCircle(19,49,10,0x001F); //Blue
+  M5.Lcd.fillCircle(69,49,10,0x001F); //Blue
+  M5.Lcd.fillRect(19,78,50,20,0x7800); //Red
 }
 
 void face_left(){
   face_clear();
-  M5.Lcd.fillCircle(59,49,10,0x7800); //Blue
-  M5.Lcd.fillCircle(109,49,10,0x7800); //Blue
-  M5.Lcd.fillRect(59,78,50,20,0x001F); //Red
+  M5.Lcd.fillCircle(59,49,10,0x001F); //Blue
+  M5.Lcd.fillCircle(109,49,10,0x001F); //Blue
+  M5.Lcd.fillRect(59,78,50,20,0x7800); //Red
 }
 
 void Srv_drive(int srv_CH,int SrvAng){
@@ -204,7 +207,6 @@ void right_step()
     }
   servo_set();
   }
-  face_clear();
 }
 
 void left_step()
@@ -216,7 +218,6 @@ void left_step()
     }
   servo_set();
   }
-  face_clear();
 }
 
 void right_arm()
@@ -226,8 +227,6 @@ void right_arm()
     ang1[j] = angZero[j] + r_a[j];
   }
   servo_set();
-  delay(500);
-  face_clear();
 }
 
 void left_arm()
@@ -237,8 +236,6 @@ void left_arm()
     ang1[j] = angZero[j] + l_a[j];
   }
   servo_set();
-  delay(500);
-  face_clear();
 }
 
 void both_arm()
@@ -248,7 +245,6 @@ void both_arm()
     ang1[j] = angZero[j] + b_a[j];
   }
   servo_set();
-  delay(500);
 }
 
 void home_position()
@@ -258,7 +254,7 @@ void home_position()
     ang1[j] = angZero[j] + h_p[j];
   }
   servo_set();
-  face_clear();
+  //face_clear();
 }
 
 void servo_set(){
@@ -316,6 +312,8 @@ void setup() {
 
   Initial_Value();
   home_position();
+
+  xTaskCreatePinnedToCore(face_center_eye, "face_center_eye", 4096, NULL, 1, NULL, 1);
 }
 
 void loop() {
@@ -323,36 +321,31 @@ void loop() {
   if ( M5.Btn.wasReleased() ) {
     Initial_Value();
   }
-
-  if (angry_state == 0)
-  {
-    face_center_eye();
-  }
   
   Dabble.processInput();             //this function is used to refresh data obtained from smartphone.Hence calling this function is mandatory in order to get data properly from your mobile.
 
   if (GamePad.isUpPressed())
   {
     forward_step();
-    Serial.println("FWD");
+    //USBSerial.println("FWD");
   }
 
   if (GamePad.isDownPressed())
   {
     back_step();
-    Serial.println("BACK");
+    //USBSerial.println("BACK");
   }
 
   if (GamePad.isLeftPressed())
   {
     left_step();
-    Serial.println("LEFT STEP");
+    //USBSerial.println("LEFT STEP");
   }
 
   if (GamePad.isRightPressed())
   {
     right_step();
-    Serial.println("RIGHT STEP");
+    //USBSerial.println("RIGHT STEP");
   }
   
   if (GamePad.isSquarePressed())
@@ -367,7 +360,7 @@ void loop() {
       home_position();
       arm_state = 0;
     }
-    Serial.println("Left ARM");
+    //USBSerial.println("Left ARM");
   }
 
   if (GamePad.isCirclePressed())
@@ -382,7 +375,7 @@ void loop() {
       home_position();
       arm_state = 0;
     }
-    Serial.println("RIGHT ARM");
+    //USBSerial.println("RIGHT ARM");
   }
 
   if (GamePad.isTrianglePressed())
@@ -397,7 +390,7 @@ void loop() {
       home_position();
       angry_state = 0;
     }
-    Serial.println("BOTH ARM");
+    //USBSerial.println("BOTH ARM");
   }
 
   //delay(100);
